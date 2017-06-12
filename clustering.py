@@ -1,4 +1,5 @@
 import random
+import math
 
 def computePrototypes(U, D, wt, m, n, q, k):
     """ Computes the prototype G_k which minimizes the clustering criterion J. (Proposition 2.1) """
@@ -14,6 +15,7 @@ def computePrototypes(U, D, wt, m, n, q, k):
             j = 0
             while (j < len(D)):
                 d = wt[j][k] * D[j][i][h]
+                j += 1
 
             r = r * d
             tmp.append(r)
@@ -62,8 +64,9 @@ def _updateMembershipDegree(D, G, K, wt, n, m):
             while (j < len(D)):
                 num = 1.0 * wt[j][k] * _extendedDissimilarity(D[j], G[k], i) # Converts to float
                 for h in range(K):
-                    r = (num / wt[j][h] * _extendedDissimilarity(D[j], G[h], i)) ** exp
+                    r = (num / (wt[j][h] * _extendedDissimilarity(D[j], G[h], i))) ** exp
                     tmp.append(r)
+                j += 1
 
             u_i_k = sum(tmp) ** -1
             U_i.append(u_i_k)
@@ -80,6 +83,7 @@ def _goalFunction(D, G, U, K, wt, n, m):
             j = 0
             while (j < len(D)):
                 d = wt[j][k] * _extendedDissimilarity(D[j], G[k], i)
+                j += 1
 
             J += u * d
     return J
@@ -88,26 +92,28 @@ def _setWeightVector(U, G, D, K, m, n):
 
     w = [[0 for i in range(K)] for j in range(len(D))]
 
-    for k in K:
-        for p in len(D):
-            num = 1
+    for k in range(K):
+        for p in range(len(D)):
+            prod = 1
             det = 0
             for h in D:
                 sum = 0
-                for i in n:
-                    sum += (U[i][k] ** m) * _extendedDissimilarity(D[h], G[k], i)
-                num = num * sum
-            num = num ** (1/len(D))
-            for i in n:
-                det += (U[i][k] ** m) * _extendedDissimilarity(D[h], G[k], i)
+                for i in range(n):
+                    sum += (U[i][k] ** m) * _extendedDissimilarity(h, G[k], i)
+                prod *= sum
+            num = math.pow(prod, 1/len(D))
+            for i in range(n):
+                det += (U[i][k] ** m) * _extendedDissimilarity(D[p], G[k], i)
+
+            if (det == 0):
+                det = 1.0
 
             w[p][k] = num / det
-
 
     return w
 
 def fuzzyClustering(E, D, K, T, m, q, epsilon):
-    """ Partitioning Fuzzy K-Medoids Clustering Algorithm Based on a Single Dissimilarity Matrix. (Section 2.1)
+    """ Partitioning Fuzzy K-Medoids Clustering Algorithm Based on a Multiple Dissimilarity Matrix. (Section 2.1)
         - E: Set/List of elements;
         - D: Dissimilarity matrix;
         - K: Number of clusters;
@@ -122,20 +128,20 @@ def fuzzyClustering(E, D, K, T, m, q, epsilon):
     W[0] = [[1 for i in range(K)] for j in range(len(D))]
     G = _selectRandomPrototypes(K, n, q) # Initial prototypes
     U = _updateMembershipDegree(D, G, K, W[0], n, m) # Membership degree Matrix
-    J = _goalFunction(D, G, U, K, n, m) # Homogeneity / Goal function
+    J = _goalFunction(D, G, U, K, W[0], n, m) # Homogeneity / Goal function
     t = 0 # Current Iteration step
 
     while t < T:
         t += 1
         # Step 1
         for k in range(K):
-            G[k] = computePrototypes(U, D, m, n, q, k)
+            G[k] = computePrototypes(U, D, W[t-1], m, n, q, k)
         # Step 2
         W[t] = _setWeightVector(U, G, D, K, m, n)
         # Step 3
         U = _updateMembershipDegree(D, G, K, W[t-1], n, m)
         # Step 4
-        g = _goalFunction(D, G, U, K, n, m)
+        g = _goalFunction(D, G, U, K, W[t-1], n, m)
         if abs(J - g) < epsilon :
             break
         else :
