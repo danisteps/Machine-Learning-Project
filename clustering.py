@@ -1,6 +1,7 @@
 import random
 import math
 from decimal import Decimal, localcontext
+from numpy import float64
 
 def computePrototypes(U, D, wt, m, n, q, k):
     """ Computes the prototype G_k which minimizes the clustering criterion J. (Proposition 2.1) """
@@ -10,12 +11,12 @@ def computePrototypes(U, D, wt, m, n, q, k):
     for h in range(n):
         tmp = []
         for i in range(n):
-            r = Decimal(str(U[i][k])) ** Decimal(str(m))
+            r = float64(U[i][k]) ** float64(m)
 
             d = 1
             j = 0
             while (j < len(D)):
-                d = Decimal(str(wt[j][k])) * Decimal(str(D[j][i][h]))
+                d += float64(wt[j][k]) * float64(D[j][i][h])
                 j += 1
 
             r = r * d
@@ -24,6 +25,7 @@ def computePrototypes(U, D, wt, m, n, q, k):
         c = (h, J)
         candidates.append(c)
 
+    #AJUSTAR OS SORTS
     # Sorts the candidates according to the adequacy criterion
     candidates.sort(lambda (i, J_i), (k, J_k) : -1 if (J_i < J_k) else 1 if (J_i > J_k) else 0)
 
@@ -55,7 +57,7 @@ def _extendedDissimilarity(D, Gk, e):
 def _updateMembershipDegree(D, G, K, wt, n, m):
     """ Updates the membership degree based on the new prototypes. """
     U = []
-    exp = Decimal(1) / Decimal(str(m-1))
+    exp = float64(1) / float64(m-1)
     for i in range(n):
         U_i = []
         for k in range(K):
@@ -63,13 +65,13 @@ def _updateMembershipDegree(D, G, K, wt, n, m):
             tmp = []
             j = 0
             while (j < len(D)):
-                wtjk = Decimal(str(wt[j][k]))
-                exj = Decimal(str(_extendedDissimilarity(D[j], G[k], i)))
+                wtjk = float64(wt[j][k])
+                exj = float64(_extendedDissimilarity(D[j], G[k], i))
                 num = wtjk * exj # Converts to float
                 for h in range(K):
-                    wtjh = Decimal(str(wt[j][h]))
-                    exh = Decimal(str(_extendedDissimilarity(D[j], G[h], i)))
-                    r = Decimal( (num / (wtjh * exh)) ** exp )
+                    wtjh = float64(wt[j][h])
+                    exh = float64(_extendedDissimilarity(D[j], G[h], i))
+                    r = (num / (wtjh * exh)) ** exp
                     tmp.append(r)
                 j += 1
 
@@ -83,14 +85,14 @@ def _goalFunction(D, G, U, K, wt, n, m):
     J = 0
     for k in range(K):
         for i in range(n):
-            u = Decimal(str(U[i][k])) ** Decimal(str(m))
+            u = float64(U[i][k]) ** float64(m)
 
             j = 0
             while (j < len(D)):
-                d = wt[j][k] * _extendedDissimilarity(D[j], G[k], i)
+                d = float64(wt[j][k]) * float64(_extendedDissimilarity(D[j], G[k], i))
                 j += 1
 
-            J += Decimal(str(u)) * Decimal(str(d))
+            J += float64(u) * float64(d)
     return J
 
 def _setWeightVector(U, G, D, K, m, n):
@@ -99,19 +101,19 @@ def _setWeightVector(U, G, D, K, m, n):
 
     for k in range(K):
         for p in range(len(D)):
-            prod = Decimal(1)
-            det = Decimal(0)
+            prod = float64(1)
+            det = float64(0)
             for h in D:
-                sum = 0
+                sum = float64(0)
                 for i in range(n):
-                    sum += (Decimal(str(U[i][k])) ** Decimal(str(m))) * Decimal(str(_extendedDissimilarity(h, G[k], i)))
+                    sum += (float64(U[i][k]) ** float64(m)) * float64(_extendedDissimilarity(h, G[k], i))
                 prod *= sum
-            num = prod ** (Decimal(1)/Decimal(len(D)))
+            num = prod ** (float64(1)/float64(len(D)))
             for i in range(n):
-                det += (Decimal(str(U[i][k])) ** Decimal(str(m))) * Decimal(str(_extendedDissimilarity(D[p], G[k], i)))
+                det += (float64(U[i][k]) ** float64(m)) * float64(_extendedDissimilarity(D[p], G[k], i))
 
             if (det == 0):
-                det = Decimal(1)
+                det = float64(1)
 
             w[p][k] = num / det
 
@@ -142,7 +144,8 @@ def fuzzyClustering(E, D, K, T, m, q, epsilon):
         for k in range(K):
             G[k] = computePrototypes(U, D, W[t-1], m, n, q, k)
         # Step 2
-        W[t] = _setWeightVector(U, G, D, K, m, n)
+        if (t < T):
+            W[t] = _setWeightVector(U, G, D, K, m, n)
         # Step 3
         U = _updateMembershipDegree(D, G, K, W[t-1], n, m)
         # Step 4

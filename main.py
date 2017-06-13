@@ -5,7 +5,7 @@ from clustering import fuzzyClustering
 def run(E, D, K, T, m, q, epsilon):
     """ Runs the fuzzy clustering 100 times and selects the best solution based on the heterogeneity parameter. """
     optimal = None
-    for t in range(100):
+    for t in range(10):
         # print "Round #%d" % (t+1)
         current = fuzzyClustering(E, D, K, T, m, q, epsilon)
         if (optimal == None) or (optimal[2] > current[2]):
@@ -69,7 +69,7 @@ if __name__ == "__main__":
     # Calcula a matriz de dissimilaridades
     (E, Y, D) = dissimilarity_matrix.proccessData(FILENAME)
     K = 7
-    T = 1
+    T = 10
     m = 1.6
     q = 3
     s = 1
