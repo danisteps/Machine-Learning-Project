@@ -1,14 +1,17 @@
 import sys
 import dissimilarity_matrix
 from clustering import fuzzyClustering
+from sklearn.metrics.cluster import adjusted_rand_score
 
-def run(E, D, K, T, m, q, epsilon):
+def cluster(E, D, K, T, m, q, epsilon):
     """ Runs the fuzzy clustering 100 times and selects the best solution based on the heterogeneity parameter. """
     optimal = None
-    for t in range(10):
+    for t in range(100):
+        print "-- Round %d" % t
         # print "Round #%d" % (t+1)
         current = fuzzyClustering(E, D, K, T, m, q, epsilon)
         if (optimal == None) or (optimal[2] > current[2]):
+            print "Found new optimal solution...\nJ=%f" % optimal[2]
             optimal = current
     return optimal
 
@@ -43,40 +46,32 @@ def computeHardPartition(U):
 
 def computeRandIndex(E, H, Y):
     """ Computes the Adjusted Rand Index. """
-    m = len(E)
-    a = 0
-    b = 0
-    c = 0
-    d = 0
-    for i in range(m):
-        for j in range(i, m):
-            sameY = Y[i] == Y[j]
-            sameH = H[i] == H[j]
-            if sameY and sameH:
-                a += 1
-            elif (not sameY) and (not sameH):
-                b += 1
-            elif sameY and (not sameH):
-                c += 1
-            else:
-                d += 1
-    R = (a + b) / float(a + b + c + d)
-    return R
+    return adjusted_rand_score(true_labels, predicted_labels)
 
-if __name__ == "__main__":
+def run():
     FILENAME = 'database/segmentation.test.txt'
 
     # Calcula a matriz de dissimilaridades
+    print "Computing dissimilarity matrix..."
     (E, Y, D) = dissimilarity_matrix.proccessData(FILENAME)
+    
+    print "Initializing parameters..."
     K = 7
     T = 10
     m = 1.6
     q = 3
     s = 1
     epsilon = 10 ** -10
-    (U, G, J) = run(E, D, K, T, m, q, epsilon)
+
+    print "Running clustering algorithm..."
+    (U, G, J) = cluster(E, D, K, T, m, q, epsilon)
+
+    print "Computing Hard Partition..."
     H = computeHardPartition(U)
-    R = computeRandIndex(E, H, Y)
+
+    print "Computing Adjusted Rand Index..."
+    R = computeRandIndex(H, Y)
+    print "ARI: %f" % R
 
     f = open('rand-index.txt', 'w')
     f.write("Rand index: %f\n" % R)
@@ -86,3 +81,6 @@ if __name__ == "__main__":
     writeMatrix(U, 'fuzzy_partition')
     writeMatrix(G, 'medoids')
     writeMatrix(H, 'hard_partition')
+
+if __name__ == '__main__':
+    run()

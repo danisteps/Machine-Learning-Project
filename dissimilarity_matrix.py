@@ -5,11 +5,12 @@ def readData(filename):
     f = open(filename, 'r')
     lines = f.readlines()
     # Pre-proccesses the data by removing the semicolons
-    mp = lambda l: l.split(',')
+    mp = lambda l: l.replace('\n', '').split(',')
     data = map(mp, lines)
     getPart = lambda l : l[0]
     part = map(getPart, data)
-    drp = lambda l: l[1:len(l)]
+    toFloat = lambda x: float(x)
+    drp = lambda l: map(toFloat, l[1:len(l)]) # Converts to float
     data = map(drp, data) # Removes the last element of every line (the class parameter)
     f.close()
 
@@ -23,7 +24,7 @@ def readData(filename):
 def computeDissimilarityMatrix(data):
     """ Computes the Dissimilarity Matrix. The data should be pre-proccessed. """
     # Dissimmilarity function
-    delta = lambda (x_ik, x_jk) : math.pow(float(x_ik) - float(x_jk), 2)
+    delta = lambda (x_ik, x_jk) : math.pow(x_ik - x_jk, 2)
     d = lambda x_i, x_j : sum(map(delta, zip(x_i, x_j)))
 
     # Number of examples
@@ -38,18 +39,18 @@ def computeDissimilarityMatrix(data):
 
     return matrix
 
-
 def proccessData(filename):
     (data, data1, data2, part) = readData(filename)
     D1 = computeDissimilarityMatrix(data1)
     D2 = computeDissimilarityMatrix(data2)
-    D = [[[0 for i in range(len(data))] for j in range(len(data))] for j in range(2)]
+    D = [[[0 for i in range(len(data))] for j in range(len(data))] for k in range(2)]
     D[0] = D1
     D[1] = D2
     return (data, part, D)
 
-#if __name__ == "__main__":
- #   FILENAME = 'database/segmentation.test.txt'
+if __name__ == "__main__":
+   FILENAME = 'database/segmentation.test.txt'
 
-    # Calcula a matriz de dissimilaridades
-#    (E, Y, D) = proccessData(FILENAME)
+   #Calcula a matriz de dissimilaridades
+   (E, Y, D) = proccessData(FILENAME)
+   print D

@@ -140,15 +140,21 @@ def fuzzyClustering(E, D, K, T, m, q, epsilon):
 
     while t < T:
         t += 1
+        print "Iteration #%d" % t
+
         # Step 1
+        print "Computing prototypes..."
         for k in range(K):
             G[k] = computePrototypes(U, D, W[t-1], m, n, q, k)
         # Step 2
+        print "Updating weights..."
         if (t < T):
             W[t] = _setWeightVector(U, G, D, K, m, n)
         # Step 3
+        print "Updating membership degree..."
         U = _updateMembershipDegree(D, G, K, W[t-1], n, m)
         # Step 4
+        print "Computing goal function..."
         g = _goalFunction(D, G, U, K, W[t-1], n, m)
         if abs(J - g) < epsilon :
             break
