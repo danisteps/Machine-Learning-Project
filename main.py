@@ -69,7 +69,7 @@ if __name__ == "__main__":
     # Calcula a matriz de dissimilaridades
     (E, Y, D) = dissimilarity_matrix.proccessData(FILENAME)
     K = 7
-    T = 100
+    T = 1
     m = 1.6
     q = 3
     s = 1

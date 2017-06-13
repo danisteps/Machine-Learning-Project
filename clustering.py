@@ -1,5 +1,6 @@
 import random
 import math
+from decimal import Decimal, localcontext
 
 def computePrototypes(U, D, wt, m, n, q, k):
     """ Computes the prototype G_k which minimizes the clustering criterion J. (Proposition 2.1) """
@@ -9,12 +10,12 @@ def computePrototypes(U, D, wt, m, n, q, k):
     for h in range(n):
         tmp = []
         for i in range(n):
-            r = (U[i][k] ** m)
+            r = Decimal(str(U[i][k])) ** Decimal(str(m))
 
             d = 1
             j = 0
             while (j < len(D)):
-                d = wt[j][k] * D[j][i][h]
+                d = Decimal(str(wt[j][k])) * Decimal(str(D[j][i][h]))
                 j += 1
 
             r = r * d
@@ -54,7 +55,7 @@ def _extendedDissimilarity(D, Gk, e):
 def _updateMembershipDegree(D, G, K, wt, n, m):
     """ Updates the membership degree based on the new prototypes. """
     U = []
-    exp = 1.0 / (m-1)
+    exp = Decimal(1) / Decimal(str(m-1))
     for i in range(n):
         U_i = []
         for k in range(K):
@@ -62,9 +63,13 @@ def _updateMembershipDegree(D, G, K, wt, n, m):
             tmp = []
             j = 0
             while (j < len(D)):
-                num = 1.0 * wt[j][k] * _extendedDissimilarity(D[j], G[k], i) # Converts to float
+                wtjk = Decimal(str(wt[j][k]))
+                exj = Decimal(str(_extendedDissimilarity(D[j], G[k], i)))
+                num = wtjk * exj # Converts to float
                 for h in range(K):
-                    r = (num / (wt[j][h] * _extendedDissimilarity(D[j], G[h], i))) ** exp
+                    wtjh = Decimal(str(wt[j][h]))
+                    exh = Decimal(str(_extendedDissimilarity(D[j], G[h], i)))
+                    r = Decimal( (num / (wtjh * exh)) ** exp )
                     tmp.append(r)
                 j += 1
 
@@ -78,14 +83,14 @@ def _goalFunction(D, G, U, K, wt, n, m):
     J = 0
     for k in range(K):
         for i in range(n):
-            u = U[i][k] ** m
+            u = Decimal(str(U[i][k])) ** Decimal(str(m))
 
             j = 0
             while (j < len(D)):
                 d = wt[j][k] * _extendedDissimilarity(D[j], G[k], i)
                 j += 1
 
-            J += u * d
+            J += Decimal(str(u)) * Decimal(str(d))
     return J
 
 def _setWeightVector(U, G, D, K, m, n):
@@ -94,19 +99,19 @@ def _setWeightVector(U, G, D, K, m, n):
 
     for k in range(K):
         for p in range(len(D)):
-            prod = 1
-            det = 0
+            prod = Decimal(1)
+            det = Decimal(0)
             for h in D:
                 sum = 0
                 for i in range(n):
-                    sum += (U[i][k] ** m) * _extendedDissimilarity(h, G[k], i)
+                    sum += (Decimal(str(U[i][k])) ** Decimal(str(m))) * Decimal(str(_extendedDissimilarity(h, G[k], i)))
                 prod *= sum
-            num = math.pow(prod, 1/len(D))
+            num = prod ** (Decimal(1)/Decimal(len(D)))
             for i in range(n):
-                det += (U[i][k] ** m) * _extendedDissimilarity(D[p], G[k], i)
+                det += (Decimal(str(U[i][k])) ** Decimal(str(m))) * Decimal(str(_extendedDissimilarity(D[p], G[k], i)))
 
             if (det == 0):
-                det = 1.0
+                det = Decimal(1)
 
             w[p][k] = num / det
 
