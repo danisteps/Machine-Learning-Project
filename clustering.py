@@ -133,6 +133,7 @@ def fuzzyClustering(E, D, K, T, m, q, epsilon):
     n = len(E)
     W = [[[0 for i in range(K)] for j in range(len(D))] for k in range(T)] #initial weight
     W[0] = [[1 for i in range(K)] for j in range(len(D))]
+
     G = _selectRandomPrototypes(K, n, q) # Initial prototypes
     U = _updateMembershipDegree(D, G, K, W[0], n, m) # Membership degree Matrix
     J = _goalFunction(D, G, U, K, W[0], n, m) # Homogeneity / Goal function
@@ -143,7 +144,7 @@ def fuzzyClustering(E, D, K, T, m, q, epsilon):
         print "Iteration #%d" % t
 
         # Step 1
-        print "Computing prototypes..."
+        print "Updating prototypes..."
         for k in range(K):
             G[k] = computePrototypes(U, D, W[t-1], m, n, q, k)
         # Step 2

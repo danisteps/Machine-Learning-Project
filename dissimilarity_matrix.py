@@ -43,14 +43,15 @@ def proccessData(filename):
     (data, data1, data2, part) = readData(filename)
     D1 = computeDissimilarityMatrix(data1)
     D2 = computeDissimilarityMatrix(data2)
-    D = [[[0 for i in range(len(data))] for j in range(len(data))] for k in range(2)]
+    # D = [[[0 for i in range(len(data))] for j in range(len(data))] for k in range(2)]
+    D = [None, None]
     D[0] = D1
     D[1] = D2
-    return (data, part, D)
+    return (data, data1, data2, part, D)
 
 if __name__ == "__main__":
    FILENAME = 'database/segmentation.test.txt'
 
    #Calcula a matriz de dissimilaridades
    (E, Y, D) = proccessData(FILENAME)
-   print D
+   print len(E[0])

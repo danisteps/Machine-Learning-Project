@@ -11,8 +11,8 @@ def cluster(E, D, K, T, m, q, epsilon):
         # print "Round #%d" % (t+1)
         current = fuzzyClustering(E, D, K, T, m, q, epsilon)
         if (optimal == None) or (optimal[2] > current[2]):
-            print "Found new optimal solution...\nJ=%f" % optimal[2]
             optimal = current
+            print "Found new optimal solution...\nJ=%f" % optimal[2]
     return optimal
 
 def writeMatrix(M, filename):
@@ -44,24 +44,32 @@ def computeHardPartition(U):
         H.append([k])
     return H
 
-def computeRandIndex(E, H, Y):
+def computeRandIndex(H, Y):
+    toUnitaryList = lambda l: l[0]
+    H = map(toUnitaryList, H)
+    Y = map(toUnitaryList, Y)
     """ Computes the Adjusted Rand Index. """
-    return adjusted_rand_score(true_labels, predicted_labels)
+    return adjusted_rand_score(Y, H)
 
-def run():
+def prepareData():
     FILENAME = 'database/segmentation.test.txt'
 
     # Calcula a matriz de dissimilaridades
     print "Computing dissimilarity matrix..."
-    (E, Y, D) = dissimilarity_matrix.proccessData(FILENAME)
-    
+    (E, _, _, Y, D) = dissimilarity_matrix.proccessData(FILENAME)
+
     print "Initializing parameters..."
     K = 7
-    T = 10
+    T = 100
     m = 1.6
     q = 3
     s = 1
     epsilon = 10 ** -10
+
+    return (E, Y, D, K, T, m, q, epsilon)
+
+def run():
+    (E, Y, D, K, T, m, q, epsilon) = prepareData()
 
     print "Running clustering algorithm..."
     (U, G, J) = cluster(E, D, K, T, m, q, epsilon)
