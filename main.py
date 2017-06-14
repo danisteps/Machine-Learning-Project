@@ -15,6 +15,7 @@ def cluster(E, D, K, T, m, q, epsilon):
             print "Found new optimal solution...\nJ=%f" % optimal[2]
     return optimal
 
+
 def writeMatrix(M, filename):
     """ Prints the matrix M to a .txt file named `filename`. """
     f = open(filename+'.txt', 'w')
@@ -28,6 +29,7 @@ def writeMatrix(M, filename):
             f.write(s)
         f.write('\n')
     f.close()
+
 
 def computeHardPartition(U):
     """ Given the membership degree matrix U, computes the hard partitioning. """
@@ -44,12 +46,14 @@ def computeHardPartition(U):
         H.append([k])
     return H
 
+
 def computeRandIndex(H, Y):
     toUnitaryList = lambda l: l[0]
     H = map(toUnitaryList, H)
     Y = map(toUnitaryList, Y)
     """ Computes the Adjusted Rand Index. """
     return adjusted_rand_score(Y, H)
+
 
 def prepareData():
     FILENAME = 'database/segmentation.test.txt'
@@ -67,6 +71,7 @@ def prepareData():
     epsilon = 10 ** -10
 
     return (E, Y, D, K, T, m, q, epsilon)
+
 
 def run():
     (E, Y, D, K, T, m, q, epsilon) = prepareData()
@@ -89,6 +94,7 @@ def run():
     writeMatrix(U, 'fuzzy_partition')
     writeMatrix(G, 'medoids')
     writeMatrix(H, 'hard_partition')
+
 
 if __name__ == '__main__':
     run()

@@ -38,6 +38,7 @@ def computePrototypes(U, D, wt, m, n, q, k):
 
     return Gk
 
+
 def _selectRandomPrototypes(K, n, q):
     """ Creates K random prototypes with cardinality q. """
     G = [] # Vector of prototypes
@@ -47,12 +48,14 @@ def _selectRandomPrototypes(K, n, q):
         G.append(Gk)
     return G
 
+
 def _extendedDissimilarity(D, Gk, e):
     """ Extended dissimilarity function. """
     tmp = []
     for g in Gk:
         tmp.append(D[e][g])
     return sum(tmp)
+
 
 def _updateMembershipDegree(D, G, K, wt, n, m):
     """ Updates the membership degree based on the new prototypes. """
@@ -80,6 +83,7 @@ def _updateMembershipDegree(D, G, K, wt, n, m):
         U.append(U_i)
     return U
 
+
 def _goalFunction(D, G, U, K, wt, n, m):
     """ Computes the goal function based on the new membership degree matrix and the new prototypes. """
     J = 0
@@ -94,6 +98,7 @@ def _goalFunction(D, G, U, K, wt, n, m):
 
             J += float64(u) * float64(d)
     return J
+
 
 def _setWeightVector(U, G, D, K, m, n):
 
@@ -118,6 +123,7 @@ def _setWeightVector(U, G, D, K, m, n):
             w[p][k] = num / det
 
     return w
+
 
 def fuzzyClustering(E, D, K, T, m, q, epsilon):
     """ Partitioning Fuzzy K-Medoids Clustering Algorithm Based on a Multiple Dissimilarity Matrix. (Section 2.1)

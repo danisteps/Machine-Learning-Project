@@ -21,6 +21,7 @@ def readData(filename):
 
     return (data, data1, data2, part)
 
+
 def computeDissimilarityMatrix(data):
     """ Computes the Dissimilarity Matrix. The data should be pre-proccessed. """
     # Dissimmilarity function
@@ -39,6 +40,7 @@ def computeDissimilarityMatrix(data):
 
     return matrix
 
+
 def proccessData(filename):
     (data, data1, data2, part) = readData(filename)
     D1 = computeDissimilarityMatrix(data1)
@@ -48,6 +50,7 @@ def proccessData(filename):
     D[0] = D1
     D[1] = D2
     return (data, data1, data2, part, D)
+
 
 if __name__ == "__main__":
    FILENAME = 'database/segmentation.test.txt'

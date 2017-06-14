@@ -14,11 +14,13 @@ def estimateError(testY, predictedY):
     se = math.sqrt(tmp / float(n))
     return (e_rate, se)
 
+
 def confidenceInterval(se):
     """ Computes a confidence interval for the error using alpha=0.05. """
     tmp  = 1.96*se
     interval = [e_rate - tmp, e_rate + tmp]
     return (e_rate, se, interval)
+
 
 def getClasses(Y):
     classes = []
@@ -36,15 +38,18 @@ def getClasses(Y):
 
     return (len(classes), classesIds, proccessedY)
 
+
 def getKFold(data, k, foldSize):
     start = k * foldSize
     end = start + foldSize
     rest = data[:start] + data[end+1:]
     return (rest, data[start:end])
 
+
 def prod(lst):
     """ Returns the product of the elements on the list. """
     return reduce(mul, lst, 1)
+
 
 def estimateP(Y):
     """ Estimates P(w_j). """
@@ -62,6 +67,7 @@ def estimateP(Y):
         P[w] = count[w] / float(N)
 
     return P
+
 
 def conditional(x, w, d):
     """ Computes the conditional probability P(x | w_j). """
@@ -97,6 +103,7 @@ def conditional(x, w, d):
 
     return prod(tmp)
 
+
 def bayes(x, w, d, c, P):
     """ Uses Maximum Likelihood and Bayes Theorem to estimate P(w_j | x). """
     tmp = []
@@ -107,6 +114,7 @@ def bayes(x, w, d, c, P):
     denum = sum(tmp)
     bt = num / denum
     return bt
+
 
 def bayesian(trainX, trainY, testX, testY, W, d):
     P = estimateP(trainY)
@@ -124,8 +132,10 @@ def bayesian(trainX, trainY, testX, testY, W, d):
 
     return estimateError(testY, predictedY)
 
+
 def kNN(trainX, trainY, testX, testY):
     pass
+
 
 def majorRule(classifications, classes):
     """ For each data point, a classification ex: for x[k] classifications[k] = [0, 1, 1, 0] """
@@ -140,6 +150,7 @@ def majorRule(classifications, classes):
                 currentClass = c
             C.append(c)
     return C
+
 
 if __name__ == '__main__':
     FILENAME = 'database/segmentation.test.txt'
