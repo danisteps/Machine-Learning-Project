@@ -1,6 +1,8 @@
+from tests import compare
 from operator import mul
 from dissimilarity_matrix import proccessData
 import math
+import random
 
 def estimateError(testY, predictedY):
     """ Estimates the error on the classification. """
@@ -15,8 +17,9 @@ def estimateError(testY, predictedY):
     return (e_rate, se)
 
 
-def confidenceInterval(se):
+def confidenceInterval(testY, predictedY):
     """ Computes a confidence interval for the error using alpha=0.05. """
+    (e_rate, se) = estimateError(testY, predictedY)
     tmp  = 1.96*se
     interval = [e_rate - tmp, e_rate + tmp]
     return (e_rate, se, interval)
@@ -130,47 +133,171 @@ def bayesian(trainX, trainY, testX, testY, W, d):
                 currentClass = w
         predictedY.append(w)
 
-    return estimateError(testY, predictedY)
+    (e_rate, se, interval) = confidenceInterval(testY, predictedY)
+
+    return (e_rate, se, interval, predictedY)
 
 
-def kNN(trainX, trainY, testX, testY):
-    pass
+def _classifyKNN(trainX, trainY, testX, testY, k, W):
+    P = []
+
+    delta = lambda (x1, x2): abs(x1 - x2) ** 2
+    dist = lambda x1, x2: math.sqrt(sum(map(delta, zip(x1, x2)))) # Euclidean distance
+
+    m = len(trainX)
+    n = len(testX)
+    ids = range(m)
+
+    ND = [[0 for j in range(m)] for i in range(n)] # Matrix filled with 0s
+
+    for i in range(n):
+        for j in range(m):
+            ND[i][j] = dist(testX[i], trainX[j])
+
+    for i in range(n):
+        P.append([])
+
+        N = zip(ids, ND[i]) # Neighbors
+        N.sort(lambda (l, a), (m, b) : -1 if (a < b) else 1 if (a > b) else 0) # Sorts by distance
+        N = N[:k] # K Nearest Neighbors
+
+        freq = [0 for o in range(W)]
+        for nb in N:
+            n = nb[0]
+            freq[trainY[n]] += 1
+
+        for j in range(W):
+            p = freq[j] / float(k)
+            P[i].append(p)
+
+    return P
 
 
-def majorRule(classifications, classes):
+def kNN(trainX, trainY, testX, testY, W):
+    trainSize = len(trainX)
+    validationSize = int(0.3 * trainSize)
+
+    validTrainX = trainX[:trainSize-validationSize]
+    validTrainY = trainY[:trainSize-validationSize]
+
+    validX = trainX[trainSize-validationSize:]
+    validY = trainY[trainSize-validationSize:]
+
+    neighbors = None
+    currentError = None
+    for k in range(1, 20, 2):
+        predictedY = _classifyKNN(validTrainX, validTrainY, validX, validY, k, W)
+        (_, se) = estimateError(validY, predictedY)
+
+        if (currentError == None) or (currentError > se):
+            currentError = se
+            neighbors = k
+        else:
+            break
+
+    predictedY = _classifyKNN(trainX, trainY, testX, testY, neighbors, W)
+    (e_rate, se, interval) = confidenceInterval(testY, predictedY)
+
+    return (e_rate, se, interval, predictedY, neighbors)
+
+
+def majorRule(classifications, Y, W):
     """ For each data point, a classification ex: for x[k] classifications[k] = [0, 1, 1, 0] """
-    C = []
-    currentClass = 0
-    argmax = -1
-    for i in range(len(classifications)):
-        for c in classes:
-            count = classifications.count(c)
-            if count > argmax:
-                argmax = count
-                currentClass = c
-            C.append(c)
-    return C
+    predictedY = []
+    N = len(Y)
+
+    for k in range(N):
+        currentClass = 0
+        argmax = -1
+        for i in range(len(classifications)):
+            for c in range(W):
+                count = classifications[i].count(c)
+                if count > argmax:
+                    argmax = count
+                    currentClass = c
+        predictedY.append(c)
+
+    return confidenceInterval(Y, predictedY)
 
 
-if __name__ == '__main__':
-    FILENAME = 'database/segmentation.test.txt'
+def writeResults(f, e_rate, se, interval):
+    f.write("(a) Error rate: %f\n" % e_rate)
+    f.write("(b) SE: %f\n" % se)
+    f.write("(c) Confidence Interval: [%f, %f]\n\n" % (interval[0], interval[1]))
 
-    (_, view1, view2, Y, _) = proccessData(FILENAME)
-    (W, classes, Y) = getClasses(Y)
 
-    d = len(view1[0])
+def _runView(X, Y, viewId):
+    classificadores = ["Bayesian", "KNN", "MajorRule"]
+    errorResults = {}
+
+    for c in classificadores:
+        errorResults[c] = []
+
+    resultsBay = open('part2-results-bayesian-view-%d.txt' % viewId, 'a')
+    resultsKn = open('part2-results-knn-view-%d.txt' % viewId, 'a')
+    resultsMaj = open('part2-results-major-view-%d.txt' % viewId, 'a')
+
+    d = len(X[0])
     K = 10
-    N = len(view1)
+    N = len(X)
     foldSize = N / K
 
-    print "%d %d" % (N, foldSize)
+    (W, classes, Y) = getClasses(Y)
 
-    for k in range(K):
-        data = zip(view1, Y)
-        train, test = getKFold(data, k, foldSize)
+    print "Running for View #%d\nData length:%d\nFold size:%d" % (viewId, N, foldSize)
 
-        trainX, trainY = [list(t) for t in zip(*train)]
-        testX, testY = [list(t) for t in zip(*test)]
+    for j in range(30):
+        data = zip(X, Y)
+        random.shuffle(data)
 
-        (e_rate, se) = bayesian(trainX, trainY, testX, testY, W, d)
-        print "%f %f" % (e_rate, se)
+        for k in range(K):
+            print "Round %d" % (j*10+k+1)
+
+            resultsBay.write("Round %d\n\n" % (j*10+k+1))
+            resultsKn.write("Round %d\n\n" % (j*10+k+1))
+            resultsMaj.write("Round %d\n\n" % (j*10+k+1))
+
+            train, test = getKFold(data, k, foldSize)
+
+            trainX, trainY = [list(t) for t in zip(*train)]
+            testX, testY = [list(t) for t in zip(*test)]
+
+            ## Bayesian Classifier
+            print "Running Bayesian Classifier..."
+            (e_rate_bay, se_bay, interval_bay, predictedBay) = bayesian(trainX, trainY, testX, testY, W, d)
+            resultsBay.write("- Bayesian\n")
+            writeResults(resultsBay, e_rate_bay, se_bay, interval_bay)
+            errorResults["Bayesian"].append(e_rate_bay)
+
+            ## k-NN Classifier
+            print "Running k-NN Classifier..."
+            (e_rate_kn, se_kn, interval_kn, predictedKn, neighbors) = kNN(trainX, trainY, testX, testY, W)
+            resultsKn.write("- KNN (n = %d)\n" % neighbors)
+            writeResults(resultsKn, e_rate_kn, se_kn, interval_kn)
+            errorResults["KNN"].append(e_rate_kn)
+
+            ## Major Rule Classifier
+            print "Running Major Rule Classifier..."
+            (e_rate_maj, se_maj, interval_maj) = majorRule([predictedKn, predictedBay], testY, W)
+            resultsMaj.write("- Maj")
+            writeResults(resultsMaj, e_rate_maj, se_maj, interval_maj)
+            errorResults["MajorRule"].append(e_rate_maj)
+
+    resultsBay.close()
+    resultsKn.close()
+    resultsMaj.close()
+
+    compare(errorResults)
+
+
+def run():
+    FILENAME = 'database/segmentation.test.txt'
+
+    print "Reading data..."
+    (_, view1, view2, Y, _) = proccessData(FILENAME)
+
+    _runView(view1, Y, 1)
+    _runView(view2, Y, 2)
+
+if __name__ == '__main__':
+    run()

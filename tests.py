@@ -24,7 +24,7 @@ def calculate_ranks(l):
     return newarray
 
 
-def friedman_test(results):
+def friedman_test(results, viewId):
     N = 100 #N de conjuto de dados
     k = 11 #N de algoritmos
 
@@ -38,7 +38,6 @@ def friedman_test(results):
         for j in results:
             scores.append((results[j][i], j))
 
-
         scores.sort()
 
         aux = calculate_ranks(scores) #Lista dos ranks
@@ -46,8 +45,7 @@ def friedman_test(results):
         for j in range(k):
             ranks[scores[j][1]].append(aux[j])
 
-
-    testFile = open("tests-log.txt", "w")
+    testFile = open("tests-log-view-%d.txt" % viewId, "w")
     testFile.write("Ranks \n\n")
     for i in ranks:
         testFile.write(i + "\n")
@@ -62,8 +60,6 @@ def friedman_test(results):
         R[r] = sum(ranks[r]) / N
 
     #Print Medias
-
-
     testFile.write("Medias\n\n")
     for i in R:
         testFile.write(i + ": " + str(R[i]) + "\n")
@@ -95,12 +91,12 @@ def friedman_test(results):
         testFile.write("Hipotese H0 rejeitada\n\n")
         testFile.close()
 
-        nemenyi_test(R)
+        nemenyi_test(R, viewId)
     else:
         testFile.close()
 
 
-def nemenyi_test(R):
+def nemenyi_test(R, viewId):
     N = 100 #N de conjuto de dados
     k = 11 #N de algoritmos
 
@@ -109,7 +105,7 @@ def nemenyi_test(R):
 
     CD = qa * sqrt((k * (k + 1)) / float((6 * N)))
 
-    testFile = open("tests-log.txt", "a")
+    testFile = open("tests-log-view-%d.txt" % viewId, "a")
 
     testFile.write("Nemenyi Test (Pos Teste)\n\n")
 
@@ -129,5 +125,5 @@ def nemenyi_test(R):
     testFile.close()
 
 
-def compare(results):
+def compare(results, viewId):
     friedman_test(results)
