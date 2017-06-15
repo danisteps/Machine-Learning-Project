@@ -57,4 +57,4 @@ if __name__ == "__main__":
 
    #Calcula a matriz de dissimilaridades
    (E, Y, D) = proccessData(FILENAME)
-   print len(E[0])
+   print len(E)
