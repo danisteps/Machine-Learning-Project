@@ -126,4 +126,4 @@ def nemenyi_test(R, viewId):
 
 
 def compare(results, viewId):
-    friedman_test(results)
+    friedman_test(results, viewId)
