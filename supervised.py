@@ -287,7 +287,7 @@ def _runView(X, Y, viewId):
     resultsKn.close()
     resultsMaj.close()
 
-    compare(errorResults)
+    compare(errorResults, viewId)
 
 
 def run():
