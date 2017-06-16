@@ -25,7 +25,7 @@ def calculate_ranks(l):
 
 
 def friedman_test(results, viewId):
-    N = 2100 #N de conjuto de dados
+    N = 300 #N de conjuto de dados
     k = 3 #N de algoritmos
 
     ranks = {}
@@ -97,7 +97,7 @@ def friedman_test(results, viewId):
 
 
 def nemenyi_test(R, viewId):
-    N = 2100 #N de conjuto de dados
+    N = 300 #N de conjuto de dados
     k = 3 #N de algoritmos
 
     #Pos teste

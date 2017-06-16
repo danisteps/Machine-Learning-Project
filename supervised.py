@@ -95,13 +95,13 @@ def conditional(x, w, d):
     expSum = 0
     for j in range(d):
         diff = (x[j] - u[j]) ** 2.0
-        diff = diff / sig[j]
+        diff = diff / sig[j] if sig[j] != 0 else 0
         expSum += diff
     expSum = -0.5 * expSum
 
     tmp = []
     tmp.append(TwoPi ** (-d * 0.5))
-    tmp.append(prod(sig) ** (-0.5))
+    tmp.append(prod(sig) ** (-0.5) if prod(sig) != 0 else 1)
     tmp.append(math.exp(expSum))
 
     return prod(tmp)
